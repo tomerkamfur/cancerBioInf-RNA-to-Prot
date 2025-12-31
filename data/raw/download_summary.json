@@ -1,0 +1,122 @@
+{
+  "brca": {
+    "transcriptomics": {
+      "rows": 121,
+      "cols": 225998,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\brca\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 125,
+      "cols": 12923,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\brca\\proteomics.parquet"
+    }
+  },
+  "ccrcc": {
+    "transcriptomics": {
+      "rows": 185,
+      "cols": 225998,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\ccrcc\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 194,
+      "cols": 11890,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\ccrcc\\proteomics.parquet"
+    }
+  },
+  "coad": {
+    "transcriptomics": {
+      "rows": 105,
+      "cols": 225998,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\coad\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 197,
+      "cols": 9458,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\coad\\proteomics.parquet"
+    }
+  },
+  "gbm": {
+    "transcriptomics": {
+      "rows": 109,
+      "cols": 225998,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\gbm\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 110,
+      "cols": 13003,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\gbm\\proteomics.parquet"
+    }
+  },
+  "hnscc": {
+    "transcriptomics": {
+      "rows": 170,
+      "cols": 59287,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\hnscc\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 170,
+      "cols": 11561,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\hnscc\\proteomics.parquet"
+    }
+  },
+  "lscc": {
+    "transcriptomics": {
+      "rows": 211,
+      "cols": 59287,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\lscc\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 207,
+      "cols": 12758,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\lscc\\proteomics.parquet"
+    }
+  },
+  "luad": {
+    "transcriptomics": {
+      "rows": 213,
+      "cols": 59287,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\luad\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 207,
+      "cols": 12432,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\luad\\proteomics.parquet"
+    }
+  },
+  "ov": {
+    "transcriptomics": {
+      "rows": 101,
+      "cols": 60592,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\ov\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 102,
+      "cols": 10590,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\ov\\proteomics.parquet"
+    }
+  },
+  "pdac": {
+    "transcriptomics": {
+      "rows": 212,
+      "cols": 59287,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\pdac\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 149,
+      "cols": 11405,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\pdac\\proteomics.parquet"
+    }
+  },
+  "ucec": {
+    "transcriptomics": {
+      "rows": 119,
+      "cols": 59287,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\ucec\\transcriptomics.parquet"
+    },
+    "proteomics": {
+      "rows": 113,
+      "cols": 11950,
+      "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\raw\\ucec\\proteomics.parquet"
+    }
+  }
+}
