@@ -14,14 +14,24 @@ def _setup_logging() -> None:
     )
 
 
-def _safe_histogram(series: pd.Series, title: str, out_path: Path) -> None:
+def _sample_values(df: pd.DataFrame, max_rows: int = 200, max_cols: int = 2000) -> pd.Series:
+    sampled = df
+    if df.shape[0] > max_rows:
+        sampled = sampled.sample(n=max_rows, axis=0, random_state=0)
+    if df.shape[1] > max_cols:
+        sampled = sampled.sample(n=max_cols, axis=1, random_state=0)
+    values = sampled.to_numpy().ravel()
+    return pd.Series(values)
+
+
+def _safe_histogram(df: pd.DataFrame, title: str, out_path: Path) -> None:
     try:
         import matplotlib.pyplot as plt
     except ImportError:
         logging.warning("matplotlib not installed; skipping histogram %s", out_path.name)
         return
 
-    values = series.dropna().astype(float)
+    values = _sample_values(df).dropna().astype(float)
     if values.empty:
         return
 
@@ -98,12 +108,12 @@ def main() -> int:
         out_dir.mkdir(parents=True, exist_ok=True)
 
         _safe_histogram(
-            transcriptomics.stack(),
+            transcriptomics,
             f"{dataset_name} RNA value distribution",
             out_dir / "rna_value_hist.png",
         )
         _safe_histogram(
-            proteomics.stack(),
+            proteomics,
             f"{dataset_name} Protein value distribution",
             out_dir / "protein_value_hist.png",
         )

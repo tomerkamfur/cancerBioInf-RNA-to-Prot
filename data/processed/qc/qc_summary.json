@@ -1,0 +1,292 @@
+{
+  "brca": {
+    "transcriptomics": {
+      "rows": 121,
+      "cols": 225997,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 125,
+      "cols": 12922,
+      "missing_count": 317173,
+      "missing_fraction": 0.19636155393901872,
+      "per_sample_missing_mean": 0.19636155393901872,
+      "per_sample_missing_median": 0.19911778362482588,
+      "per_gene_missing_mean": 0.19636155393901872,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 121,
+      "protein_samples": 125,
+      "overlap_samples": 121,
+      "overlap_fraction_rna": 1.0,
+      "overlap_fraction_protein": 0.968
+    }
+  },
+  "ccrcc": {
+    "transcriptomics": {
+      "rows": 185,
+      "cols": 225997,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 194,
+      "cols": 11889,
+      "missing_count": 488257,
+      "missing_fraction": 0.211690525678679,
+      "per_sample_missing_mean": 0.21169052567867896,
+      "per_sample_missing_median": 0.21259147110774668,
+      "per_gene_missing_mean": 0.21169052567867896,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 185,
+      "protein_samples": 194,
+      "overlap_samples": 185,
+      "overlap_fraction_rna": 1.0,
+      "overlap_fraction_protein": 0.9536082474226805
+    }
+  },
+  "coad": {
+    "transcriptomics": {
+      "rows": 105,
+      "cols": 225997,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 197,
+      "cols": 9457,
+      "missing_count": 460916,
+      "missing_fraction": 0.24740140921048465,
+      "per_sample_missing_mean": 0.24740140921048462,
+      "per_sample_missing_median": 0.24024532092629797,
+      "per_gene_missing_mean": 0.24740140921048462,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 105,
+      "protein_samples": 197,
+      "overlap_samples": 96,
+      "overlap_fraction_rna": 0.9142857142857143,
+      "overlap_fraction_protein": 0.4873096446700508
+    }
+  },
+  "gbm": {
+    "transcriptomics": {
+      "rows": 109,
+      "cols": 225997,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 110,
+      "cols": 13002,
+      "missing_count": 237778,
+      "missing_fraction": 0.16625274433303966,
+      "per_sample_missing_mean": 0.16625274433303966,
+      "per_sample_missing_median": 0.16185971389017073,
+      "per_gene_missing_mean": 0.1662527443330397,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 108,
+      "protein_samples": 110,
+      "overlap_samples": 108,
+      "overlap_fraction_rna": 1.0,
+      "overlap_fraction_protein": 0.9818181818181818
+    }
+  },
+  "hnscc": {
+    "transcriptomics": {
+      "rows": 170,
+      "cols": 59286,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 170,
+      "cols": 11560,
+      "missing_count": 354465,
+      "missing_fraction": 0.1803709546102178,
+      "per_sample_missing_mean": 0.1803709546102178,
+      "per_sample_missing_median": 0.18161764705882355,
+      "per_gene_missing_mean": 0.1803709546102178,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 170,
+      "protein_samples": 170,
+      "overlap_samples": 154,
+      "overlap_fraction_rna": 0.9058823529411765,
+      "overlap_fraction_protein": 0.9058823529411765
+    }
+  },
+  "lscc": {
+    "transcriptomics": {
+      "rows": 211,
+      "cols": 59286,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 207,
+      "cols": 12757,
+      "missing_count": 400172,
+      "missing_fraction": 0.1515401793237321,
+      "per_sample_missing_mean": 0.15154017932373207,
+      "per_sample_missing_median": 0.1504272164301952,
+      "per_gene_missing_mean": 0.1515401793237321,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 211,
+      "protein_samples": 207,
+      "overlap_samples": 202,
+      "overlap_fraction_rna": 0.957345971563981,
+      "overlap_fraction_protein": 0.9758454106280193
+    }
+  },
+  "luad": {
+    "transcriptomics": {
+      "rows": 213,
+      "cols": 59286,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 207,
+      "cols": 12431,
+      "missing_count": 435456,
+      "missing_fraction": 0.16922630310618964,
+      "per_sample_missing_mean": 0.16922630310618964,
+      "per_sample_missing_median": 0.16716273831550157,
+      "per_gene_missing_mean": 0.1692263031061896,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 213,
+      "protein_samples": 207,
+      "overlap_samples": 207,
+      "overlap_fraction_rna": 0.971830985915493,
+      "overlap_fraction_protein": 1.0
+    }
+  },
+  "ov": {
+    "transcriptomics": {
+      "rows": 101,
+      "cols": 60591,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 102,
+      "cols": 10589,
+      "missing_count": 226624,
+      "missing_fraction": 0.209821883234359,
+      "per_sample_missing_mean": 0.209821883234359,
+      "per_sample_missing_median": 0.20795164793653792,
+      "per_gene_missing_mean": 0.20982188323435902,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 101,
+      "protein_samples": 102,
+      "overlap_samples": 82,
+      "overlap_fraction_rna": 0.8118811881188119,
+      "overlap_fraction_protein": 0.803921568627451
+    }
+  },
+  "pdac": {
+    "transcriptomics": {
+      "rows": 212,
+      "cols": 59286,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 149,
+      "cols": 11404,
+      "missing_count": 372490,
+      "missing_fraction": 0.21921544071431429,
+      "per_sample_missing_mean": 0.2192154407143143,
+      "per_sample_missing_median": 0.2210627849877236,
+      "per_gene_missing_mean": 0.21921544071431429,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 212,
+      "protein_samples": 149,
+      "overlap_samples": 120,
+      "overlap_fraction_rna": 0.5660377358490566,
+      "overlap_fraction_protein": 0.8053691275167785
+    }
+  },
+  "ucec": {
+    "transcriptomics": {
+      "rows": 119,
+      "cols": 59286,
+      "missing_count": 0,
+      "missing_fraction": 0.0,
+      "per_sample_missing_mean": 0.0,
+      "per_sample_missing_median": 0.0,
+      "per_gene_missing_mean": 0.0,
+      "per_gene_missing_median": 0.0
+    },
+    "proteomics": {
+      "rows": 113,
+      "cols": 11949,
+      "missing_count": 238490,
+      "missing_fraction": 0.17662825118849507,
+      "per_sample_missing_mean": 0.17662825118849504,
+      "per_sample_missing_median": 0.1809356431500544,
+      "per_gene_missing_mean": 0.17662825118849507,
+      "per_gene_missing_median": 0.0
+    },
+    "sample_overlap": {
+      "rna_samples": 119,
+      "protein_samples": 113,
+      "overlap_samples": 95,
+      "overlap_fraction_rna": 0.7983193277310925,
+      "overlap_fraction_protein": 0.8407079646017699
+    }
+  }
+}

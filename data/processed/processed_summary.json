@@ -1,0 +1,12 @@
+{
+  "all_rna": {
+    "rows": 1546,
+    "cols": 121217,
+    "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\processed\\all_rna.parquet"
+  },
+  "all_protein": {
+    "rows": 1574,
+    "cols": 30837,
+    "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\processed\\all_protein.parquet"
+  }
+}
