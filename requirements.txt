@@ -2,3 +2,6 @@ cptac
 pandas
 pyarrow
 matplotlib
+numpy
+scikit-learn
+joblib
