@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Iterable, Optional
 
@@ -25,7 +26,7 @@ from utils_io import load_matrix_parquet, select_value_type, standardize_gene_id
 RNA_PARQUET_PATH = Path("data/processed/all_rna.parquet")
 PROT_PARQUET_PATH = Path("data/processed/all_protein.parquet")
 OUTPUT_DIR = Path("outputs")
-TARGETS = ["KRAS", "TP53", "GAPDH"]
+TARGETS = ["KRAS"]
 RANDOM_SEED = 42
 TEST_SIZE = 0.2
 N_JOBS = -1
@@ -53,10 +54,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--feature-selection",
         choices=["none", "kbest"],
-        default="none",
+        default="kbest",
         help="Optional feature selection using SelectKBest(f_regression).",
     )
-    parser.add_argument("--k-best", type=int, default=5000)
+    parser.add_argument("--k-best", type=int, default=2000)
     parser.add_argument("--save-models", action="store_true")
     return parser.parse_args()
 
@@ -155,10 +156,16 @@ def _save_pred_plot(out_dir: Path, target: str, y_true: np.ndarray, y_pred: np.n
     plt.close()
 
 
+def _write_progress(out_dir: Path, payload: dict) -> None:
+    progress_path = out_dir / "progress.json"
+    progress_path.write_text(json.dumps(payload, indent=2))
+
+
 def main() -> int:
     _setup_logging()
     args = _parse_args()
     np.random.seed(args.seed)
+    start_time = time.time()
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -167,11 +174,27 @@ def main() -> int:
     if not targets:
         logging.error("No targets provided.")
         return 1
+    _write_progress(
+        out_dir,
+        {
+            "stage": "init",
+            "targets": targets,
+            "start_time": start_time,
+        },
+    )
 
     logging.info("Loading RNA from %s", args.rna)
     rna = load_matrix_parquet(args.rna)
     logging.info("Loading proteomics from %s", args.prot)
     prot = load_matrix_parquet(args.prot)
+    _write_progress(
+        out_dir,
+        {
+            "stage": "loaded_inputs",
+            "targets": targets,
+            "elapsed_sec": round(time.time() - start_time, 1),
+        },
+    )
 
     rna.columns = _clean_sample_ids(rna.columns)
     prot.columns = _clean_sample_ids(prot.columns)
@@ -197,6 +220,15 @@ def main() -> int:
     feature_selection = args.feature_selection
 
     for target in targets:
+        target_start = time.time()
+        _write_progress(
+            out_dir,
+            {
+                "stage": "target_start",
+                "target": target,
+                "elapsed_sec": round(time.time() - start_time, 1),
+            },
+        )
         resolved = _resolve_target(prot.index, target)
         if resolved is None:
             logging.warning("Target %s not found in proteomics. Skipping.", target)
@@ -256,6 +288,8 @@ def main() -> int:
             "model__bootstrap": [True, False],
         }
 
+        logging.info("Starting RF hyperparameter search for %s", target)
+        search_start = time.time()
         search = RandomizedSearchCV(
             rf_pipeline,
             param_distributions=param_distributions,
@@ -267,6 +301,11 @@ def main() -> int:
             verbose=1,
         )
         search.fit(X_train, y_train)
+        logging.info(
+            "Finished RF search for %s in %.1f sec",
+            target,
+            time.time() - search_start,
+        )
 
         best_rf = search.best_estimator_
         rf_pred = best_rf.predict(X_test)
@@ -314,6 +353,15 @@ def main() -> int:
             baseline_r2,
             rf_r2,
         )
+        _write_progress(
+            out_dir,
+            {
+                "stage": "target_done",
+                "target": target,
+                "elapsed_sec": round(time.time() - start_time, 1),
+                "target_elapsed_sec": round(time.time() - target_start, 1),
+            },
+        )
 
     metrics_df = pd.DataFrame(metrics)
     metrics_path = out_dir / "metrics.csv"
@@ -351,6 +399,13 @@ def main() -> int:
     if missing_targets:
         logging.info("Missing targets: %s", ", ".join(missing_targets))
 
+    _write_progress(
+        out_dir,
+        {
+            "stage": "done",
+            "elapsed_sec": round(time.time() - start_time, 1),
+        },
+    )
     return 0
 
 
