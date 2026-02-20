@@ -1,0 +1,12 @@
+{
+  "brca_normalized": {
+    "samples": 121,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": -5.392465918241385e-10,
+    "rna_std": 1.0,
+    "protein_mean": -0.00031964079244062304,
+    "protein_std": 1.0013386011123657,
+    "protein_missing_fraction": 0.6632222694803951
+  }
+}

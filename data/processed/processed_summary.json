@@ -2,11 +2,11 @@
   "all_rna": {
     "rows": 1546,
     "cols": 121217,
-    "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\processed\\all_rna.parquet"
+    "path": "/Users/mayofek/Library/Mobile Documents/com~apple~CloudDocs/Technion /\u05e9\u05e0\u05d4 \u05d3/Semester 7/\u05d1\u05d9\u05d5\u05d0\u05d9\u05e0\u05e4\u05d5\u05e8\u05de\u05d8\u05d9\u05e7\u05d4 \u05e9\u05dc \u05e1\u05e8\u05d8\u05df/final project/cancerBioInf-RNA-to-Prot/data/processed/all_rna.parquet"
   },
   "all_protein": {
     "rows": 1574,
     "cols": 30837,
-    "path": "C:\\Users\\tomer\\Desktop\\school\\semester_9\\cancer_bioinformatics\\project\\data\\processed\\all_protein.parquet"
+    "path": "/Users/mayofek/Library/Mobile Documents/com~apple~CloudDocs/Technion /\u05e9\u05e0\u05d4 \u05d3/Semester 7/\u05d1\u05d9\u05d5\u05d0\u05d9\u05e0\u05e4\u05d5\u05e8\u05de\u05d8\u05d9\u05e7\u05d4 \u05e9\u05dc \u05e1\u05e8\u05d8\u05df/final project/cancerBioInf-RNA-to-Prot/data/processed/all_protein.parquet"
   }
 }

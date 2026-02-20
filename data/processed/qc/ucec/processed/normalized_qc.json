@@ -1,0 +1,12 @@
+{
+  "ucec_normalized": {
+    "samples": 95,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": -6.458178436474782e-11,
+    "rna_std": 1.0,
+    "protein_mean": -0.00028913249843753874,
+    "protein_std": 1.0068093538284302,
+    "protein_missing_fraction": 0.6821470448179989
+  }
+}

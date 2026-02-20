@@ -1,0 +1,12 @@
+{
+  "gbm_normalized": {
+    "samples": 108,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": 9.020802438364228e-10,
+    "rna_std": 1.0,
+    "protein_mean": -0.0015407633036375046,
+    "protein_std": 0.9904223084449768,
+    "protein_missing_fraction": 0.6482892725069331
+  }
+}

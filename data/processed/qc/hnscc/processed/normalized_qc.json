@@ -1,0 +1,12 @@
+{
+  "hnscc_normalized": {
+    "samples": 154,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": -1.1008922246036335e-10,
+    "rna_std": 1.0,
+    "protein_mean": 0.0013129010330885649,
+    "protein_std": 1.0043164491653442,
+    "protein_missing_fraction": 0.6926847028510614
+  }
+}

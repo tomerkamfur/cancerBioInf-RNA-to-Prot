@@ -1,0 +1,12 @@
+{
+  "pdac_normalized": {
+    "samples": 120,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": 3.9709080468242064e-10,
+    "rna_std": 1.0,
+    "protein_mean": -0.008926630020141602,
+    "protein_std": 0.8985012173652649,
+    "protein_missing_fraction": 0.711674557620175
+  }
+}

@@ -1,0 +1,38 @@
+Biology: protein abundance is influenced by translation, degradation, PTMs, and measurement noise; RNA explains only part of protein variance.
+
+Data: proteomics missingness and measurement error can flatten signal.
+
+Modeling: linear elastic net may be too simple if relationships are non‑linear or dominated by small subsets of pathways.
+
+Sample size vs features: 510 samples vs 60k features is extremely high‑dimensional; even with regularization, signal can be weak.
+
+
+solutions:
+- Variance filtering: keep top N RNA genes (most variable) to reduce noise.
+
+- Grid over l1_ratio: search multiple L1/L2 mixes instead of a single value.
+
+- Wider alpha grid: search a broader range of regularization strengths.
+
+- Inner CV tuning: use cross‑validation inside each training fold to pick alpha/l1_ratio.
+
+- Standardization: z‑score RNA features so elastic net isn’t biased by scale.
+
+- Fold‑safe feature selection: compute variance and select genes using only the training fold (prevents leakage).
+
+- Median imputation inside folds: handle missing RNA values without leaking test info.
+
+
+part 5 sanity check explanation:
+
+It’s a sanity check to see if the model is actually learning real signal, or if it could do just as well with no signal (baseline) or random labels (permutation). 
+If these checks look reasonable, the pipeline is likely correct.
+
+Baseline (mean predictor): “What if I ignore RNA and just predict the average protein value every time?”
+
+If my model can’t beat this, it’s not really learning useful signal.
+It just predicts the mean of the training protein values for each fold and scores that on the test fold.
+no regression.
+Permutation (random labels): “What if I scramble the protein labels so RNA and protein are unrelated?”
+A good pipeline should then fail and give R² ≈ 0 or negative.
+If it still looks good, something is wrong (leakage/bug).

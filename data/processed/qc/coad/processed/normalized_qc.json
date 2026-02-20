@@ -1,0 +1,12 @@
+{
+  "coad_normalized": {
+    "samples": 96,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": -1.7655111816949898e-09,
+    "rna_std": 1.0,
+    "protein_mean": -0.036435313522815704,
+    "protein_std": 0.9614744186401367,
+    "protein_missing_fraction": 0.7673891483174974
+  }
+}

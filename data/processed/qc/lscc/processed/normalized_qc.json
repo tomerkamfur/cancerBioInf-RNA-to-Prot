@@ -1,0 +1,12 @@
+{
+  "lscc_normalized": {
+    "samples": 202,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": 1.1088187659713533e-11,
+    "rna_std": 1.0,
+    "protein_mean": -0.0004666204913519323,
+    "protein_std": 1.0015634298324585,
+    "protein_missing_fraction": 0.6490174944140975
+  }
+}

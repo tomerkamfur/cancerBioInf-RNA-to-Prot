@@ -1,0 +1,12 @@
+{
+  "ccrcc_normalized": {
+    "samples": 185,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": -8.880990387538645e-10,
+    "rna_std": 1.0,
+    "protein_mean": 0.0017616602126508951,
+    "protein_std": 1.0032958984375,
+    "protein_missing_fraction": 0.6958523851217693
+  }
+}

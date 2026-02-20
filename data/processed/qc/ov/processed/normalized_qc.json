@@ -1,0 +1,12 @@
+{
+  "ov_normalized": {
+    "samples": 82,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": 9.036362769165862e-10,
+    "rna_std": 1.0,
+    "protein_mean": -0.025027237832546234,
+    "protein_std": 0.929349422454834,
+    "protein_missing_fraction": 0.728179720750413
+  }
+}

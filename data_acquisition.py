@@ -1,50 +1,53 @@
 from __future__ import annotations
 
-import argparse
-import json
-import logging
-import time
-from pathlib import Path
-from typing import Iterable, Optional
+import argparse #argparse module for parsing command-line arguments
+import json #import json module for reading/writing json files
+import logging #logging module for logging messages
+import time #time module for sleep function
+from pathlib import Path #import Path class for filesystem paths
+from typing import Iterable, Optional #for type hints
 
 
 def _setup_logging() -> None:
     logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(message)s",
+        level=logging.INFO, #info/warning/error messages show up
+        format="%(asctime)s %(levelname)s %(message)s", #time, level, message
     )
 
+# cptac is a python package for accessing CPTAC datasets, turns into pandas dataframes
 
-def _dedupe_index(cptac_module) -> None:
-    index = getattr(cptac_module, "INDEX", None)
-    if index is None or not hasattr(index, "columns"):
+## if cptac.INDEX has duplicate filenames, remove duplicates
+def _dedupe_index(cptac_module) -> None: 
+    index = getattr(cptac_module, "INDEX", None) #get cptac.INDEX, if doesnt exist, return None
+    if index is None or not hasattr(index, "columns"): #if index is None or doesnt have columns attribute-- exit function
         return
-    if "filename" not in index.columns:
+    if "filename" not in index.columns: #if 'filename' not in index columns-- exit function
         return
-    duplicates = index["filename"].duplicated(keep="first")
-    if bool(duplicates.any()):
-        cptac_module.INDEX = index.loc[~duplicates].copy()
+    duplicates = index["filename"].duplicated(keep="first") #boolean series indicating duplicate filenames, keep first occurrence
+    if bool(duplicates.any()): #only works if any duplicates exist
+        cptac_module.INDEX = index.loc[~duplicates].copy() #keeps only non-duplicate rows in cptac.INDEX
         logging.info("Deduplicated cptac.INDEX by filename.")
 
-
-def _parse_args() -> argparse.Namespace:
+## Defines the CLI flags (a code that reads and interpets command-line arguments when you run the script in terminal)
+def _parse_args() -> argparse.Namespace: #arrow = returns an argparse.Namespace object
     parser = argparse.ArgumentParser(
         description="Download CPTAC datasets and save RNA/Protein tables to data/raw.",
     )
     parser.add_argument(
         "--only",
-        type=str,
-        default="",
+        type=str, #input is string
+        default="", #if you dont pass it, it defaults to empty string
         help="Comma-separated list of dataset names to download (e.g., brca,pdac).",
     )
     parser.add_argument(
         "--skip-download",
-        action="store_true",
+        action="store_true", #if flag is present, value is True, else False
         help="Skip download step and only try to load and export tables.",
     )
     return parser.parse_args()
 
 
+# Get list of available datasets from cptac module, tries 2 different methods because there are multiple cptac versions
 def _list_datasets(cptac_module) -> Optional[Iterable[str]]:
     if hasattr(cptac_module, "list_datasets"):
         return cptac_module.list_datasets()
@@ -52,7 +55,7 @@ def _list_datasets(cptac_module) -> Optional[Iterable[str]]:
         return cptac_module.datasets.list_datasets()
     return None
 
-
+# Converts a string to CamelCase format (e.g., "brca" -> "Brca", "lung_cancer" -> "LungCancer")
 def _camel_case(name: str) -> str:
     parts = []
     current = []
@@ -67,7 +70,7 @@ def _camel_case(name: str) -> str:
         parts.append("".join(current))
     return "".join(part[:1].upper() + part[1:].lower() for part in parts)
 
-
+# Downloads a dataset using the appropriate method from the cptac module
 def _download_dataset(cptac_module, name: str) -> None:
     if hasattr(cptac_module, "download"):
         try:
@@ -80,7 +83,11 @@ def _download_dataset(cptac_module, name: str) -> None:
         return
     raise RuntimeError("No download function found in cptac module.")
 
+# Downloads a dataset with retry logic for rate limiting
 
+# The retry logic is there because CPTAC downloads can hit rate limits (HTTP 429 / “Too Many Requests”) 
+# or temporary network hiccups. Instead of failing immediately, it waits and tries again with increasing delays
+# which makes downloads more reliable.
 def _download_with_retry(cptac_module, name: str, max_attempts: int = 5) -> None:
     delay = 2
     for attempt in range(1, max_attempts + 1):
@@ -102,7 +109,7 @@ def _download_with_retry(cptac_module, name: str, max_attempts: int = 5) -> None
             time.sleep(delay)
             delay *= 2
 
-
+# Wraps the cptac.download function to add retry logic for rate limiting
 def _wrap_cptac_download(cptac_module, max_attempts: int = 5) -> None:
     if not hasattr(cptac_module, "download"):
         return
@@ -129,7 +136,7 @@ def _wrap_cptac_download(cptac_module, max_attempts: int = 5) -> None:
 
     cptac_module.download = wrapped
 
-
+# Loads a dataset using the appropriate method from the cptac module
 def _load_dataset(cptac_module, name: str):
     if hasattr(cptac_module, "get_dataset"):
         return cptac_module.get_dataset(name)
@@ -140,7 +147,7 @@ def _load_dataset(cptac_module, name: str):
         raise RuntimeError(f"No dataset class found for '{name}' (expected {class_name}).")
     return dataset_cls()
 
-
+# Get available data sources for a given data type from a dataset object
 def _get_sources(dataset_obj, data_type: str, cptac_module=None, dataset_name: Optional[str] = None) -> Optional[list[str]]:
     if not hasattr(dataset_obj, "list_data_sources"):
         return None
@@ -180,7 +187,7 @@ def _get_sources(dataset_obj, data_type: str, cptac_module=None, dataset_name: O
 
     return valid_sources or sources
 
-
+# Try to get a data table from a dataset object using various method names and data sources
 def _try_get_table(dataset_obj, data_type: str, method_names: Iterable[str], cptac_module=None, dataset_name: Optional[str] = None):
     sources = _get_sources(dataset_obj, data_type, cptac_module=cptac_module, dataset_name=dataset_name) or [None]
     for method_name in method_names:
@@ -218,7 +225,7 @@ def _try_get_table(dataset_obj, data_type: str, method_names: Iterable[str], cpt
                 continue
     return None
 
-
+# Main function to orchestrate dataset downloading and processing
 def main() -> int:
     _setup_logging()
     args = _parse_args()

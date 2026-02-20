@@ -1,0 +1,12 @@
+{
+  "luad_normalized": {
+    "samples": 207,
+    "rna_cols": 60607,
+    "protein_cols": 30837,
+    "rna_mean": 2.4861979142087876e-10,
+    "rna_std": 1.0,
+    "protein_mean": 7.381231736935945e-11,
+    "protein_std": 1.0,
+    "protein_missing_fraction": 0.6650988155110109
+  }
+}

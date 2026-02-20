@@ -14,11 +14,11 @@ def _setup_logging() -> None:
         format="%(asctime)s %(levelname)s %(message)s",
     )
 
-
+# Loads a parquet file into a DataFrame
 def _load_parquet(path: Path) -> pd.DataFrame:
     return pd.read_parquet(path)
 
-
+# Normalizes RNA table columns to ensure they are at gene-level
 def _normalize_rna_columns(df: pd.DataFrame) -> pd.DataFrame:
     if not isinstance(df.columns, pd.MultiIndex):
         raise ValueError("RNA table columns must be a MultiIndex.")
@@ -28,15 +28,28 @@ def _normalize_rna_columns(df: pd.DataFrame) -> pd.DataFrame:
 
     if df.columns.nlevels == 3:
         # Collapse transcript-level data to gene-level by averaging transcripts.
-        collapsed = df.groupby(level=[0, 2], axis=1).mean()
+        # Use stack to avoid memory-intensive transpose on large DataFrames
+        level_0 = df.columns.get_level_values(0)
+        level_1 = df.columns.get_level_values(1)
+        level_2 = df.columns.get_level_values(2)
+        
+        # Create grouping key and average
+        result_data = {}
+        for val_type in level_0.unique():
+            for db_id in level_2[level_0 == val_type].unique():
+                mask = (level_0 == val_type) & (level_2 == db_id)
+                avg_col = df.iloc[:, mask].mean(axis=1)
+                result_data[(val_type, db_id)] = avg_col
+        
+        collapsed = pd.DataFrame(result_data)
         collapsed.columns = pd.MultiIndex.from_tuples(
-            collapsed.columns, names=["Name", "Database_ID"]
+            collapsed.columns, names=["value_type", "Database_ID"]
         )
         return collapsed
 
     raise ValueError(f"Unsupported RNA column levels: {df.columns.nlevels}")
 
-
+# Adds a cancer type column to the DataFrame
 def _add_cancer_type_column(df: pd.DataFrame, cancer_type: str) -> pd.DataFrame:
     if isinstance(df.columns, pd.MultiIndex):
         col = ("cancer_type",) + ("",) * (df.columns.nlevels - 1)
@@ -47,9 +60,12 @@ def _add_cancer_type_column(df: pd.DataFrame, cancer_type: str) -> pd.DataFrame:
         df["cancer_type"] = cancer_type
     return df
 
-
+# Combines RNA tables from multiple datasets into a single DataFrame
 def _combine_rna_tables(raw_root: Path, datasets: list[str]) -> pd.DataFrame:
-    rna_tables = []
+    rna_tables_raw = []
+    rna_tables_z = []
+    cancer_types = []
+    
     for name in datasets:
         transcript_path = raw_root / name / "transcriptomics.parquet"
         if not transcript_path.exists():
@@ -57,52 +73,68 @@ def _combine_rna_tables(raw_root: Path, datasets: list[str]) -> pd.DataFrame:
             continue
         df = _load_parquet(transcript_path)
         df = _normalize_rna_columns(df)
-        df = _add_cancer_type_column(df, name)
-        rna_tables.append(df)
+        
+        # Normalize this dataset's RNA independently (per-gene z-score, per-dataset)
+        # Why: Different datasets may have different preprocessing, so we normalize each before combining
+        mean = df.mean(axis=0, skipna=True)
+        std = df.std(axis=0, skipna=True).replace(0, np.nan)
+        df_z = ((df - mean) / std).astype("float32")
+        
+        rna_tables_raw.append(df)
+        rna_tables_z.append(df_z)
+        cancer_types.extend([name] * len(df))
 
-    if not rna_tables:
+    if not rna_tables_raw:
         raise RuntimeError("No RNA tables found to combine.")
 
-    combined = pd.concat(rna_tables, axis=0, join="outer")
-
-    cancer_col = ("cancer_type", "") if isinstance(combined.columns, pd.MultiIndex) else "cancer_type"
-    rna_meta = combined[[cancer_col]].copy()
-    rna_numeric = combined.drop(columns=[cancer_col]).astype("float32")
-
-    mean = rna_numeric.mean(axis=0, skipna=True)
-    std = rna_numeric.std(axis=0, skipna=True).replace(0, np.nan)
-    rna_z = ((rna_numeric - mean) / std).astype("float32")
-
-    if isinstance(rna_numeric.columns, pd.MultiIndex):
+    # Combine raw and z-normalized versions
+    combined_raw = pd.concat(rna_tables_raw, axis=0, join="outer")
+    combined_z = pd.concat(rna_tables_z, axis=0, join="outer")
+    
+    # Add cancer type metadata
+    combined_raw[("cancer_type", "")] = cancer_types
+    
+    if isinstance(combined_raw.columns, pd.MultiIndex):
+        # Create multi-index columns for raw and z
         raw_cols = pd.MultiIndex.from_arrays(
             [
-                ["raw"] * len(rna_numeric.columns),
-                rna_numeric.columns.get_level_values(0),
-                rna_numeric.columns.get_level_values(1),
+                ["raw"] * (combined_raw.shape[1] - 1),  # -1 for cancer_type column
+                combined_raw.columns.get_level_values(0)[:-1],
+                combined_raw.columns.get_level_values(1)[:-1],
             ],
-            names=["value_type", *rna_numeric.columns.names],
+            names=["value_type", "Name", "Database_ID"],
         )
         z_cols = pd.MultiIndex.from_arrays(
             [
-                ["z"] * len(rna_z.columns),
-                rna_z.columns.get_level_values(0),
-                rna_z.columns.get_level_values(1),
+                ["z"] * combined_z.shape[1],
+                combined_z.columns.get_level_values(0),
+                combined_z.columns.get_level_values(1),
             ],
-            names=["value_type", *rna_z.columns.names],
+            names=["value_type", "Name", "Database_ID"],
         )
-        rna_numeric.columns = raw_cols
-        rna_z.columns = z_cols
+        
+        # Create metadata column
         meta_cols = pd.MultiIndex.from_tuples(
             [("meta", "cancer_type", "")],
             names=["value_type", "Name", "Database_ID"],
         )
-        meta_block = pd.DataFrame(rna_meta.values, index=rna_meta.index, columns=meta_cols)
-        return pd.concat([meta_block, rna_numeric, rna_z], axis=1)
+        meta_block = pd.DataFrame(
+            combined_raw[("cancer_type", "")].values, 
+            index=combined_raw.index, 
+            columns=meta_cols
+        )
+        
+        # Get raw and z blocks (exclude cancer_type)
+        raw_block = combined_raw.iloc[:, :-1]
+        raw_block.columns = raw_cols
+        z_block = combined_z
+        z_block.columns = z_cols
+        
+        return pd.concat([meta_block, raw_block, z_block], axis=1)
+    
+    return combined_raw
 
-    rna_z = rna_z.add_suffix("_z")
-    return pd.concat([rna_meta, rna_numeric, rna_z], axis=1)
-
-
+# Combines protein tables from multiple datasets into a single DataFrame
 def _combine_protein_tables(raw_root: Path, datasets: list[str]) -> pd.DataFrame:
     protein_tables = []
     for name in datasets:
@@ -111,7 +143,15 @@ def _combine_protein_tables(raw_root: Path, datasets: list[str]) -> pd.DataFrame
             logging.warning("Missing proteomics for %s", name)
             continue
         df = _load_parquet(protein_path)
-        protein_tables.append(df)
+        
+        # Normalize each dataset independently (per-gene z-score)
+        # Why: Different datasets may be on different scales (some raw counts, some normalized)
+        # This ensures all datasets are comparable before combining
+        mean = df.mean(axis=0, skipna=True)
+        std = df.std(axis=0, skipna=True).replace(0, np.nan)
+        df_normalized = ((df - mean) / std).astype("float32")
+        
+        protein_tables.append(df_normalized)
 
     if not protein_tables:
         raise RuntimeError("No protein tables found to combine.")
