@@ -7,23 +7,33 @@ Use cross-validation to prevent overfitting on high-dimensional, small-sample da
 import pandas as pd
 import numpy as np
 import os
-from datetime import datetime
 import sys
 from sklearn.linear_model import ElasticNetCV
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings('ignore')
 
 # Write console output to a results file as well.
+RUN_ONLY_STEP_6 = False # Set to True to run only the single-protein modeling flow in step 6.
 results_dir = "results - linear regression model"
 os.makedirs(results_dir, exist_ok=True)
-results_path = os.path.join(results_dir, "step_3_results.txt")
-RUN_ONLY_STEP_6 = True
 
+def _safe_token_for_filename(value: str) -> str:
+    return "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in value)
+
+run_only_protein = None
+if RUN_ONLY_STEP_6:
+    run_only_protein = input("\nRUN_ONLY_STEP_6=True. Enter protein gene symbol to run: ").strip()
+    if not run_only_protein:
+        print("No protein entered. Exiting without running step 6.")
+        raise SystemExit(0)
+    protein_tag = _safe_token_for_filename(run_only_protein)
+    results_path = os.path.join(results_dir, f"step_3_results_protein_{protein_tag}.txt")
+else:
+    results_path = os.path.join(results_dir, "step_3_results.txt")
 # A simple class to duplicate console output to both stdout and a file.
 class Tee:
     def __init__(self, *streams):
@@ -37,6 +47,7 @@ class Tee:
             s.flush()
 
 # Redirect stdout to both console and results file.
+_original_stdout = sys.stdout
 _results_file = open(results_path, "w", encoding="utf-8")
 sys.stdout = Tee(sys.stdout, _results_file)
 
@@ -216,6 +227,28 @@ def run_model_for_proteins(protein_list, label):
         })
     return fold_results
 
+# fixes multiple enteries form protein names, helps choose only one to run on.
+def pick_single_protein_target(user_symbol):
+    matches = [col for col in all_protein.columns if str(col[0]).upper() == user_symbol.upper()]
+    if not matches:
+        return None
+    if len(matches) == 1:
+        return matches[0]
+
+    print(f"  Found {len(matches)} targets for symbol '{user_symbol}'. Choose one:")
+    for i, col in enumerate(matches, start=1):
+        print(f"    {i}. {col}")
+
+    while True:
+        choice = input(f"Enter 1-{len(matches)} (blank=1): ").strip()
+        if choice == "":
+            return matches[0]
+        if choice.isdigit():
+            idx = int(choice)
+            if 1 <= idx <= len(matches):
+                return matches[idx - 1]
+        print("  Invalid choice. Try again.")
+
 fold_results = []
 if not RUN_ONLY_STEP_6:
     # Select a few proteins to model (for demonstration)
@@ -330,10 +363,19 @@ print("\n" + "="*60)
 print("6. OPTIONAL SINGLE-PROTEIN RUN")
 print("="*60)
 
-user_protein = input("\nEnter protein gene symbol to run (blank to skip): ").strip()
+if RUN_ONLY_STEP_6:
+    user_protein = run_only_protein
+    print(f"\nUsing user-selected protein from run-only mode: {user_protein}")
+else:
+    user_protein = input("\nEnter protein gene symbol to run (blank to skip): ").strip()
+
 if user_protein:
-    matching = [col for col in all_protein.columns if col[0] == user_protein]
-    if matching:
-        _ = run_model_for_proteins(pd.Index(matching), f"(user-selected: {user_protein})")
+    selected_target = pick_single_protein_target(user_protein)
+    if selected_target is not None:
+        _ = run_model_for_proteins(pd.Index([selected_target]), f"(user-selected: {user_protein})")
     else:
         print(f"  Protein '{user_protein}' not found in targets.")
+
+print(f"\nResults were written to: {results_path}")
+sys.stdout = _original_stdout
+_results_file.close()
