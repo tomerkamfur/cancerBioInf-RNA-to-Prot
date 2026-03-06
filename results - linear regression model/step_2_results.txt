@@ -1,0 +1,94 @@
+============================================================
+STEP 2: QUALITY CONTROL & PREPROCESSING
+============================================================
+
+============================================================
+1. MISSING VALUE FILTERING
+============================================================
+
+Before filtering:
+  RNA shape: (1546, 121217) samples (patients) × features (RNA genes/transcripts)
+  Protein shape: (1574, 30837) samples (patients) × features (protein measurements)
+  Protein missingness: 69.1%
+  This high missingness is because different datasets measured different proteins
+
+Protein coverage filter (>=50%):
+  Proteins before filter: 30837
+  Proteins after filter: 7874
+  Proteins removed: 22963
+
+Sample coverage filter (>=50%):
+  Samples before filter: 1574
+  Samples after filter: 948
+  Samples removed: 626
+
+After filtering:
+  RNA shape: (860, 121217)
+  Protein shape: (948, 7874)
+  Protein missingness: 2.5%
+
+============================================================
+2. BATCH EFFECT DETECTION (Cancer Type Distribution)
+============================================================
+
+Samples per cancer type (after filtering):
+  luad: 207 (24.1%)
+  lscc: 202 (23.5%)
+  hnscc: 154 (17.9%)
+  pdac: 120 (14.0%)
+  ucec: 95 (11.0%)
+  ov: 82 (9.5%)
+
+============================================================
+3. NORMALIZATION STATE
+============================================================
+
+RNA normalization:
+  'raw' values:
+    Mean: 3.71
+    Std: 0.94
+    Range: [0.00, 23.26]
+  'z' values (per-gene standardized):
+    Mean: -0.0002 (should be ~0)
+    Std: 0.9867 (should be ~1)
+
+Protein values:
+  Mean: 0.00
+  Std: 1.00
+  Range: [-8.82, 11.16]
+
+============================================================
+4. OUTLIER DETECTION
+============================================================
+
+Outlier samples (IQR method, 1.5x multiplier):
+  RNA outlier samples: 860 (100.0%)
+  Protein outlier samples: 948 (100.0%)
+  → Consider whether to remove or keep outliers for modeling
+     (Outliers may represent real biological variation or technical issues)
+
+============================================================
+
+============================================================
+5. RNA-PROTEIN CORRELATION (Sanity Check)
+============================================================
+
+Shared genes available for correlation: 7873
+
+Sample RNA-protein correlations (first 5 shared genes):
+  CCDC115: 0.075
+  DAB2: 0.790
+  MRPL16: 0.283
+  RAB2B: 0.424
+  TUBA4A: 0.621
+  Average: 0.439
+  → Moderate to weak correlation is typical (different biological processes)
+
+============================================================
+6. EXPORT FILTERED TABLES
+============================================================
+
+Saved filtered RNA table: data/processed/all_rna_step2_filtered.parquet
+  Shape: (860, 121217)
+Saved filtered protein table: data/processed/all_protein_step2_filtered.parquet
+  Shape: (948, 7874)

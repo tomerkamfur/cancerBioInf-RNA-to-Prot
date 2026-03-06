@@ -6,9 +6,12 @@ Filter missing data, check normalization, detect batch effects, and handle outli
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 all_rna = pd.read_parquet("data/processed/all_rna.parquet")
 all_protein = pd.read_parquet("data/processed/all_protein.parquet")
+filtered_rna_path = "data/processed/all_rna_step2_filtered.parquet"
+filtered_protein_path = "data/processed/all_protein_step2_filtered.parquet"
 
 print("\n" + "="*60)
 print("STEP 2: QUALITY CONTROL & PREPROCESSING")
@@ -173,5 +176,21 @@ if len(shared_genes) > 0:
         for gene, corr in sample_correlations:
             print(f"  {gene}: {corr:.3f}")
         avg_corr = np.mean([c for _, c in sample_correlations])
-        print(f"  Average: {avg_corr:.3f}")
-        print(f"  → Moderate to weak correlation is typical (different biological processes)")
+print(f"  Average: {avg_corr:.3f}")
+print(f"  → Moderate to weak correlation is typical (different biological processes)")
+
+# ============================================================
+# 6. EXPORT FILTERED TABLES FOR DOWNSTREAM MODELING
+# ============================================================
+print("\n" + "="*60)
+print("6. EXPORT FILTERED TABLES")
+print("="*60)
+
+os.makedirs("data/processed", exist_ok=True)
+all_rna_filtered.to_parquet(filtered_rna_path)
+all_protein_filtered.to_parquet(filtered_protein_path)
+
+print(f"\nSaved filtered RNA table: {filtered_rna_path}")
+print(f"  Shape: {all_rna_filtered.shape}")
+print(f"Saved filtered protein table: {filtered_protein_path}")
+print(f"  Shape: {all_protein_filtered.shape}")

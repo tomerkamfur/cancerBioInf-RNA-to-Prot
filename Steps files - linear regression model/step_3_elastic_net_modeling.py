@@ -17,23 +17,22 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Write console output to a results file as well.
-RUN_ONLY_STEP_6 = False # Set to True to run only the single-protein modeling flow in step 6.
+RUN_ONLY_STEP_6 = False # Set to True to run only the step-6 protein modeling flow.
+USE_FILTERED_STEP2 = True # Read filtered outputs from step 2 when available.
+RUN_STEP7_ALL_RNA = True # Set to False to skip the new no-feature-selection comparison.
+Rna_PATH_STEP2 = "data/processed/all_rna_step2_filtered.parquet"
+Protein_PATH_STEP2 = "data/processed/all_protein_step2_filtered.parquet"
+Rna_PATH_ORIG = "data/processed/all_rna.parquet"
+Protein_PATH_ORIG = "data/processed/all_protein.parquet"
+STEP3_RESULTS_PATH = os.path.join("results - linear regression model", "step_3_results.txt")
+CHOSEN_PROTEINS_RESULTS_PATH = os.path.join("results - linear regression model", "step_3_results_chosen_proteins.txt")
 results_dir = "results - linear regression model"
 os.makedirs(results_dir, exist_ok=True)
 
 def _safe_token_for_filename(value: str) -> str:
     return "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in value)
 
-run_only_protein = None
-if RUN_ONLY_STEP_6:
-    run_only_protein = input("\nRUN_ONLY_STEP_6=True. Enter protein gene symbol to run: ").strip()
-    if not run_only_protein:
-        print("No protein entered. Exiting without running step 6.")
-        raise SystemExit(0)
-    protein_tag = _safe_token_for_filename(run_only_protein)
-    results_path = os.path.join(results_dir, f"step_3_results_protein_{protein_tag}.txt")
-else:
-    results_path = os.path.join(results_dir, "step_3_results.txt")
+results_path = CHOSEN_PROTEINS_RESULTS_PATH if RUN_ONLY_STEP_6 else STEP3_RESULTS_PATH
 # A simple class to duplicate console output to both stdout and a file.
 class Tee:
     def __init__(self, *streams):
@@ -51,8 +50,17 @@ _original_stdout = sys.stdout
 _results_file = open(results_path, "w", encoding="utf-8")
 sys.stdout = Tee(sys.stdout, _results_file)
 
-all_rna = pd.read_parquet("data/processed/all_rna.parquet")
-all_protein = pd.read_parquet("data/processed/all_protein.parquet")
+if USE_FILTERED_STEP2 and os.path.exists(Rna_PATH_STEP2) and os.path.exists(Protein_PATH_STEP2):
+    all_rna = pd.read_parquet(Rna_PATH_STEP2)
+    all_protein = pd.read_parquet(Protein_PATH_STEP2)
+    print(f"\nUsing Step 2 filtered inputs:\n  RNA: {Rna_PATH_STEP2}\n  Protein: {Protein_PATH_STEP2}")
+else:
+    all_rna = pd.read_parquet(Rna_PATH_ORIG)
+    all_protein = pd.read_parquet(Protein_PATH_ORIG)
+    if USE_FILTERED_STEP2:
+        print("\nWarning: filtered step 2 files not found. Falling back to original processed files.")
+        print(f"  Expected RNA: {Rna_PATH_STEP2}")
+        print(f"  Expected Protein: {Protein_PATH_STEP2}")
 
 print("\n" + "="*60)
 print("STEP 3: ELASTIC NET MODELING FOR RNA→PROTEIN PREDICTION")
@@ -129,7 +137,7 @@ Parameters:
   - max_iter: iterations for convergence
 """)
 
-def run_model_for_proteins(protein_list, label):
+def run_model_for_proteins(protein_list, label, use_top_variance_filter=True):
     print(f"Modeling {len(protein_list)} proteins {label}: {protein_list.tolist()}")
     fold_results = [] # To store results for each protein and fold
 
@@ -149,26 +157,34 @@ def run_model_for_proteins(protein_list, label):
         
         print(f"  Valid samples for this protein: {len(y)}")
         
-        cv_r2_scores = [] # To store R² scores for each fold, r2 = 1 - (residual sum of squares / total sum of squares)
-        cv_mse_scores = [] # To store MSE scores for each fold, MSE = mean squared error
-        selected_features_list = [] # To store number of selected features for each fold
+        cv_r2_scores = []
+        cv_mse_scores = []
+        cv_mae_scores = []
+        selected_features_list = []
+        input_features_list = []
+        fold_alpha_values = []
+        fold_l1_ratio_values = []
         
-        fold_idx = 1
         for train_idx, test_idx in kfold.split(X):
             X_train, X_test = X[train_idx], X[test_idx]
             y_train, y_test = y[train_idx], y[test_idx]
             
-            # Impute and select features using only the training fold to avoid leakage
+            # Impute and (optionally) select features using only the training fold to avoid leakage
             imputer = SimpleImputer(strategy="median")
             X_train_imp = imputer.fit_transform(X_train)
             X_test_imp = imputer.transform(X_test)
 
-            # Feature selection: select top N genes by variance in the training fold
-            variances = np.var(X_train_imp, axis=0)
-            top_n = min(top_n_genes, X_train_imp.shape[1]) # Ensure we don't select more features than available
-            top_idx = np.argsort(variances)[-top_n:] # Gets the indices of the top-variance genes (largest variances).
-            X_train_sel = X_train_imp[:, top_idx] #Keeps only the selected genes in the training data.
-            X_test_sel = X_test_imp[:, top_idx] #Keeps the same genes in the test data to ensure consistency.
+            if use_top_variance_filter:
+                # Feature selection: select top N genes by variance in the training fold
+                variances = np.var(X_train_imp, axis=0)
+                top_n = min(top_n_genes, X_train_imp.shape[1]) # Ensure we don't select more features than available
+                top_idx = np.argsort(variances)[-top_n:] # Gets the indices of the top-variance genes (largest variances).
+                X_train_sel = X_train_imp[:, top_idx] # Keeps only the selected genes in the training data.
+                X_test_sel = X_test_imp[:, top_idx] # Keeps the same genes in the test data to ensure consistency.
+            else:
+                # No feature selection: use all available RNA features.
+                X_train_sel = X_train_imp
+                X_test_sel = X_test_imp
 
             # Standardize features (important for regularization)
             scaler = StandardScaler()
@@ -194,59 +210,107 @@ def run_model_for_proteins(protein_list, label):
             
             # Count selected features (non-zero coefficients)
             n_selected = np.sum(model.coef_ != 0)
-            n_features_after_filter = X_train_sel.shape[1]
+            n_features_before_filter = X_train_sel.shape[1]
+            n_features_total = X_train.shape[1]
             
             cv_r2_scores.append(r2)
             cv_mse_scores.append(mse)
+            cv_mae_scores.append(mae)
             selected_features_list.append(n_selected)
+            input_features_list.append(n_features_before_filter)
+            fold_alpha_values.append(model.alpha_)
+            fold_l1_ratio_values.append(model.l1_ratio_)
             
-            if fold_idx == 1:
-                print(f"  Fold 1 performance:")
-                print(f"    R² = {r2:.4f} (fraction of variance explained)")
-                print(f"    RMSE = {np.sqrt(mse):.4f}")
-                print(f"    MAE = {mae:.4f}")
-                print(f"    Selected features: {n_selected} / {n_features_after_filter} (~{100*n_selected/n_features_after_filter:.1f}%)")
-                print(f"    Best alpha: {model.alpha_:.4f}")
-                print(f"    Best l1_ratio: {model.l1_ratio_}")
-            
-            fold_idx += 1
+            current_fold = len(cv_r2_scores)
+            print(f"  Fold {current_fold} performance:")
+            print(f"    R² = {r2:.4f} (fraction of variance explained)")
+            print(f"    RMSE = {np.sqrt(mse):.4f}")
+            print(f"    MAE = {mae:.4f}")
+            if use_top_variance_filter:
+                print(f"    Manual feature selection kept: {n_features_before_filter} of {n_features_total} RNAs")
+            else:
+                print(f"    Manual feature selection: disabled (using all {n_features_before_filter} RNAs)")
+            if n_features_before_filter:
+                nz_pct = 100 * n_selected / n_features_before_filter
+            else:
+                nz_pct = 0.0
+            print(f"    Non-zero coefficients: {n_selected} / {n_features_before_filter} (~{nz_pct:.1f}%)")
+            print(f"    Best alpha: {model.alpha_:.4f}")
+            print(f"    Best l1_ratio: {model.l1_ratio_}")
         
         # Average across folds
-        avg_r2 = np.mean(cv_r2_scores)
-        avg_n_selected = np.mean(selected_features_list)
+        cv_r2_scores = np.array(cv_r2_scores, dtype=float)
+        cv_mse_scores = np.array(cv_mse_scores, dtype=float)
+        cv_mae_scores = np.array(cv_mae_scores, dtype=float)
+        selected_features_list = np.array(selected_features_list, dtype=float)
+        input_features_list = np.array(input_features_list, dtype=float)
+        fold_alpha_values = np.array(fold_alpha_values, dtype=float)
+        fold_l1_ratio_values = np.array(fold_l1_ratio_values, dtype=float)
+
+        if cv_r2_scores.size == 0:
+            print(f"  Skipping {protein}: no completed CV folds.")
+            continue
+
+        avg_r2 = cv_r2_scores.mean()
+        std_r2 = cv_r2_scores.std(ddof=0)
+        min_r2 = cv_r2_scores.min()
+        max_r2 = cv_r2_scores.max()
+        avg_n_selected = selected_features_list.mean()
+        std_n_selected = selected_features_list.std(ddof=0)
+        avg_n_input_features = input_features_list.mean()
+        std_n_input_features = input_features_list.std(ddof=0)
         
-        print(f"\n  Cross-validation average (5 folds):")
+        print(f"\n  Cross-validation summary (5 folds):")
         print(f"    Mean R²: {avg_r2:.4f}")
-        print(f"    Mean features selected: {avg_n_selected:.0f}")
+        print(f"    Std R²: {std_r2:.4f}")
+        print(f"    Min R²: {min_r2:.4f}")
+        print(f"    Max R²: {max_r2:.4f}")
+        print(f"    Mean input RNAs per fold: {avg_n_input_features:.0f}")
+        print(f"    Std input RNAs per fold: {std_n_input_features:.1f}")
+        print(f"    Mean non-zero coefficients: {avg_n_selected:.0f}")
+        print(f"    Std non-zero coefficients: {std_n_selected:.1f}")
         
         fold_results.append({
             'protein': protein,
             'avg_r2': avg_r2,
+            'std_r2': std_r2,
+            'min_r2': min_r2,
+            'max_r2': max_r2,
+            'avg_input_features': avg_n_input_features,
+            'std_input_features': std_n_input_features,
             'avg_features': avg_n_selected,
-            'n_samples': len(y)
+            'std_features': std_n_selected,
+            'n_samples': len(y),
+            'fold_r2': cv_r2_scores.tolist(),
+            'fold_rmse': np.sqrt(cv_mse_scores).tolist(),
+            'fold_mae': cv_mae_scores.tolist(),
+            'fold_selected_features': selected_features_list.tolist(),
+            'fold_alpha': fold_alpha_values.tolist(),
+            'fold_l1_ratio': fold_l1_ratio_values.tolist(),
+            'used_variance_filter': bool(use_top_variance_filter),
         })
     return fold_results
 
-# fixes multiple enteries form protein names, helps choose only one to run on.
-def pick_single_protein_target(user_symbol):
-    matches = [col for col in all_protein.columns if str(col[0]).upper() == user_symbol.upper()]
+# Choose a target explicitly by menu (even if only one match) so user controls selection.
+def pick_protein_targets(user_symbol):
+    symbol = user_symbol.strip().upper()
+    if not symbol:
+        return []
+
+    matches = [col for col in all_protein.columns if str(col[0]).upper() == symbol]
     if not matches:
         return None
-    if len(matches) == 1:
-        return matches[0]
 
-    print(f"  Found {len(matches)} targets for symbol '{user_symbol}'. Choose one:")
+    print(f"  Found {len(matches)} targets for symbol '{user_symbol}':")
     for i, col in enumerate(matches, start=1):
         print(f"    {i}. {col}")
 
     while True:
-        choice = input(f"Enter 1-{len(matches)} (blank=1): ").strip()
-        if choice == "":
-            return matches[0]
+        choice = input(f"Enter 1-{len(matches)}: ").strip()
         if choice.isdigit():
             idx = int(choice)
             if 1 <= idx <= len(matches):
-                return matches[idx - 1]
+                return [matches[idx - 1]]
         print("  Invalid choice. Try again.")
 
 fold_results = []
@@ -255,6 +319,79 @@ if not RUN_ONLY_STEP_6:
     # In practice, we'd model all proteins
     target_proteins = all_protein.columns[:3]  # First 3 proteins
     fold_results = run_model_for_proteins(target_proteins, "(as examples)")
+    fold_results_no_filter = []
+    if RUN_STEP7_ALL_RNA:
+        print("\n" + "="*60)
+        print("7. MODELING WITHOUT VARIANCE-BASED FEATURE SELECTION")
+        print("="*60)
+        fold_results_no_filter = run_model_for_proteins(
+            target_proteins,
+            "(using all RNA features, no pre-filter)",
+            use_top_variance_filter=False
+        )
+
+        if fold_results and fold_results_no_filter:
+            print("\nFeature-selection efficacy comparison (run 3-protein benchmark):")
+            summary_fs = pd.DataFrame(fold_results)
+            summary_no_filter = pd.DataFrame(fold_results_no_filter)
+            fs_by_protein = dict(zip(summary_fs["protein"], summary_fs["avg_r2"]))
+            no_filter_by_protein = dict(zip(summary_no_filter["protein"], summary_no_filter["avg_r2"]))
+            target_set = list(target_proteins)
+            common_proteins = [p for p in target_set if p in fs_by_protein and p in no_filter_by_protein]
+            missing_fs = [p for p in target_set if p not in fs_by_protein]
+            missing_nofilter = [p for p in target_set if p not in no_filter_by_protein]
+
+            if missing_fs:
+                print("  Warning: proteins missing from filtered run:")
+                for p in missing_fs:
+                    print(f"    - {p}")
+            if missing_nofilter:
+                print("  Warning: proteins missing from no-filter run:")
+                for p in missing_nofilter:
+                    print(f"    - {p}")
+
+            if not common_proteins:
+                print("  No common proteins available for comparison.")
+            else:
+                if len(common_proteins) != len(target_set):
+                    print(f"  Comparing only common proteins ({len(common_proteins)}/{len(target_set)}).")
+
+                print("  Protein | mean R² (top variance) | mean R² (all RNA) | delta")
+                print("  " + "-"*68)
+                common_fs_r2 = []
+                common_nf_r2 = []
+                common_input_fs = []
+                common_input_nf = []
+                common_nonzero_fs = []
+                common_nonzero_nf = []
+                for protein in common_proteins:
+                    fs_r2 = fs_by_protein[protein]
+                    nofilter_r2 = no_filter_by_protein[protein]
+                    delta = nofilter_r2 - fs_r2
+                    common_fs_r2.append(fs_r2)
+                    common_nf_r2.append(nofilter_r2)
+                    fs_input = summary_fs.loc[summary_fs["protein"] == protein, "avg_input_features"]
+                    nf_input = summary_no_filter.loc[summary_no_filter["protein"] == protein, "avg_input_features"]
+                    fs_nz = summary_fs.loc[summary_fs["protein"] == protein, "avg_features"]
+                    nf_nz = summary_no_filter.loc[summary_no_filter["protein"] == protein, "avg_features"]
+
+                    common_input_fs.append(float(fs_input.iloc[0]))
+                    common_input_nf.append(float(nf_input.iloc[0]))
+                    common_nonzero_fs.append(float(fs_nz.iloc[0]))
+                    common_nonzero_nf.append(float(nf_nz.iloc[0]))
+
+                    print(f"  {protein}: {fs_r2: .4f} | {nofilter_r2: .4f} | {delta: .4f}")
+
+                print(f"\n  Average R² (with variance filter): {np.mean(common_fs_r2):.4f}")
+                print(f"  Average R² (all RNA): {np.mean(common_nf_r2):.4f}")
+                print(f"  Delta in average R² (all RNA - filtered): {np.mean(common_nf_r2) - np.mean(common_fs_r2):.4f}")
+                print(f"  Average RNAs used per fold (manual variance filter): {np.mean(common_input_fs):.0f}")
+                print(f"  Average RNAs used per fold (no manual filter): {np.mean(common_input_nf):.0f}")
+                print(f"  Average non-zero coefficients (manual variance filter): {np.mean(common_nonzero_fs):.0f}")
+                print(f"  Average non-zero coefficients (no manual filter): {np.mean(common_nonzero_nf):.0f}")
+
+        print("\nNote: step 7 only changes the RNA feature preprocessing step.")
+        print("      Model tuning, splits, and metrics remain identical for fair comparison.")
 
 # ============================================================
 # 4. INTERPRETATION
@@ -270,7 +407,9 @@ if not RUN_ONLY_STEP_6:
         print(results_df.to_string(index=False))
         
         avg_r2_all = results_df['avg_r2'].mean()
-        print(f"\n  Average R² across proteins: {avg_r2_all:.4f}")
+        std_r2_among_proteins = results_df['avg_r2'].std(ddof=0)
+        print(f"\n  Average mean R² across proteins: {avg_r2_all:.4f}")
+        print(f"  Std of mean R² across proteins: {std_r2_among_proteins:.4f}")
         
         if avg_r2_all > 0.5:
             print(f"  Good: Model explains >50% of protein variance")
@@ -279,9 +418,9 @@ if not RUN_ONLY_STEP_6:
         else:
             print(f"  Weak: Limited predictive power")
         
-        print(f"\n  Average features selected: {results_df['avg_features'].mean():.0f}")
-        print(f"  This means elastic net reduces from {rna_z.shape[1]} features")
-        print(f"  to ~{results_df['avg_features'].mean():.0f} predictive genes per protein")
+        print(f"\n  Average non-zero coefficients: {results_df['avg_features'].mean():.0f}")
+        print(f"  Model is trained on average from ~{results_df['avg_input_features'].mean():.0f} input features")
+        print(f"  and keeps ~{results_df['avg_features'].mean():.0f} non-zero coefficients per protein")
 
 
 # ============================================================
@@ -364,17 +503,48 @@ print("6. OPTIONAL SINGLE-PROTEIN RUN")
 print("="*60)
 
 if RUN_ONLY_STEP_6:
-    user_protein = run_only_protein
-    print(f"\nUsing user-selected protein from run-only mode: {user_protein}")
-else:
-    user_protein = input("\nEnter protein gene symbol to run (blank to skip): ").strip()
+    selected_targets = []
+    selected_inputs = []
+    while True:
+        run_only_protein = input("\nRUN_ONLY_STEP_6=True. Enter protein gene symbol to run (blank to finish): ").strip()
+        if not run_only_protein:
+            break
+        selected_targets_batch = pick_protein_targets(run_only_protein)
+        if selected_targets_batch is None:
+            print(f"  Protein '{run_only_protein}' not found in targets.")
+            continue
+        selected_targets.extend(selected_targets_batch)
+        selected_inputs.append(run_only_protein)
+        for target in selected_targets_batch:
+            print(f"  Added: {target}")
 
-if user_protein:
-    selected_target = pick_single_protein_target(user_protein)
-    if selected_target is not None:
-        _ = run_model_for_proteins(pd.Index([selected_target]), f"(user-selected: {user_protein})")
+    if not selected_targets:
+        print("No protein entered. Exiting without running step 6.")
+        raise SystemExit(0)
+
+    if len(selected_inputs) == 1:
+        print(f"\nUsing run-only input: {selected_inputs[0]}")
     else:
-        print(f"  Protein '{user_protein}' not found in targets.")
+        print(f"\nRUN_ONLY_STEP_6 selected {len(selected_inputs)} proteins.")
+else:
+    selected_targets = []
+    while True:
+        user_protein = input("\nEnter protein gene symbol to run (blank to finish): ").strip()
+        if not user_protein:
+            break
+        selected_targets_batch = pick_protein_targets(user_protein)
+        if selected_targets_batch is None:
+            print(f"  Protein '{user_protein}' not found in targets.")
+            continue
+        selected_targets.extend(selected_targets_batch)
+        for target in selected_targets_batch:
+            print(f"  Added: {target}")
+
+if selected_targets:
+    print(f"\nRunning user-selected proteins: {selected_targets}")
+    _ = run_model_for_proteins(pd.Index(selected_targets), "(user-selected proteins)")
+else:
+    print("\nNo proteins selected for step 6 run.")
 
 print(f"\nResults were written to: {results_path}")
 sys.stdout = _original_stdout

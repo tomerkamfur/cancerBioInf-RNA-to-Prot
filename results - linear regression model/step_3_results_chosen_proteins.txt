@@ -1,0 +1,312 @@
+
+Using Step 2 filtered inputs:
+  RNA: data/processed/all_rna_step2_filtered.parquet
+  Protein: data/processed/all_protein_step2_filtered.parquet
+
+============================================================
+STEP 3: ELASTIC NET MODELING FOR RNA→PROTEIN PREDICTION
+============================================================
+
+============================================================
+1. DATA PREPARATION
+============================================================
+
+Training data:
+  Samples: 860
+  RNA features: 60607
+  Protein targets: 7874
+  RNA features selected per fold (top 5000 by variance)
+
+============================================================
+2. CROSS-VALIDATION DESIGN
+============================================================
+
+Using 5-fold cross-validation:
+  Why cross-validation?
+    - Small sample size (860 samples) → risk of overfitting
+    - High dimensions (60607 features) → very easy to overfit
+    - CV gives better estimate of generalization performance
+  Each fold size is computed per protein after filtering missing values
+
+============================================================
+3. ELASTIC NET REGRESSION
+============================================================
+
+Elastic Net combines L1 and L2 penalties:
+  L1 (Lasso): Forces weak coefficients to exactly 0 → feature selection
+  L2 (Ridge): Shrinks large coefficients → prevents overfitting)
+  
+Why elastic net?
+  - Handles high-dimensional data (thousands of RNA genes → predict 1 protein)
+  - Automatic feature selection (removes irrelevant genes)
+  - Prevents overfitting via regularization
+  - ElasticNetCV automatically tunes the regularization parameter (alpha)
+  
+Parameters:
+  - l1_ratio: mix of L1 and L2 (grid searched in inner CV)
+  - alphas: regularization strength (CV will find best value)
+  - max_iter: iterations for convergence
+
+
+============================================================
+6. OPTIONAL SINGLE-PROTEIN RUN
+============================================================
+
+RUN_ONLY_STEP_6=True. Enter protein gene symbol to run (blank to finish):   Found 1 targets for symbol 'TP53':
+    1. ('TP53', 'ENSG00000141510.17')
+Enter 1-1:   Added: ('TP53', 'ENSG00000141510.17')
+
+RUN_ONLY_STEP_6=True. Enter protein gene symbol to run (blank to finish):   Found 1 targets for symbol 'KRAS':
+    1. ('KRAS', 'ENSG00000133703.13')
+Enter 1-1:   Added: ('KRAS', 'ENSG00000133703.13')
+
+RUN_ONLY_STEP_6=True. Enter protein gene symbol to run (blank to finish):   Found 1 targets for symbol 'PIK3CA':
+    1. ('PIK3CA', 'ENSG00000121879.5')
+Enter 1-1:   Invalid choice. Try again.
+Enter 1-1:   Added: ('PIK3CA', 'ENSG00000121879.5')
+
+RUN_ONLY_STEP_6=True. Enter protein gene symbol to run (blank to finish):   Found 1 targets for symbol 'BRAF':
+    1. ('BRAF', 'ENSG00000157764.13')
+Enter 1-1:   Added: ('BRAF', 'ENSG00000157764.13')
+
+RUN_ONLY_STEP_6=True. Enter protein gene symbol to run (blank to finish):   Found 1 targets for symbol 'EGFR':
+    1. ('EGFR', 'ENSG00000146648.18')
+Enter 1-1:   Added: ('EGFR', 'ENSG00000146648.18')
+
+RUN_ONLY_STEP_6=True. Enter protein gene symbol to run (blank to finish): 
+RUN_ONLY_STEP_6 selected 5 proteins.
+
+Running user-selected proteins: [('TP53', 'ENSG00000141510.17'), ('KRAS', 'ENSG00000133703.13'), ('PIK3CA', 'ENSG00000121879.5'), ('BRAF', 'ENSG00000157764.13'), ('EGFR', 'ENSG00000146648.18')]
+Modeling 5 proteins (user-selected proteins): [('TP53', 'ENSG00000141510.17'), ('KRAS', 'ENSG00000133703.13'), ('PIK3CA', 'ENSG00000121879.5'), ('BRAF', 'ENSG00000157764.13'), ('EGFR', 'ENSG00000146648.18')]
+
+--- Protein 1/5: ('TP53', 'ENSG00000141510.17') ---
+  Valid samples for this protein: 732
+  Fold 1 performance:
+    R² = 0.0722 (fraction of variance explained)
+    RMSE = 0.8343
+    MAE = 0.6489
+    Selected features: 99 / 5000 (~2.0%)
+    Best alpha: 0.4175
+    Best l1_ratio: 0.2
+  Fold 2 performance:
+    R² = 0.1091 (fraction of variance explained)
+    RMSE = 0.8893
+    MAE = 0.6609
+    Selected features: 129 / 5000 (~2.6%)
+    Best alpha: 0.9237
+    Best l1_ratio: 0.1
+  Fold 3 performance:
+    R² = 0.1655 (fraction of variance explained)
+    RMSE = 0.9582
+    MAE = 0.6929
+    Selected features: 101 / 5000 (~2.0%)
+    Best alpha: 0.9237
+    Best l1_ratio: 0.1
+  Fold 4 performance:
+    R² = 0.0757 (fraction of variance explained)
+    RMSE = 1.0689
+    MAE = 0.8257
+    Selected features: 123 / 5000 (~2.5%)
+    Best alpha: 0.9237
+    Best l1_ratio: 0.1
+  Fold 5 performance:
+    R² = 0.1636 (fraction of variance explained)
+    RMSE = 0.9857
+    MAE = 0.7687
+    Selected features: 68 / 5000 (~1.4%)
+    Best alpha: 0.1887
+    Best l1_ratio: 0.5
+
+  Cross-validation summary (5 folds):
+    Mean R²: 0.1172
+    Std R²: 0.0408
+    Min R²: 0.0722
+    Max R²: 0.1655
+    Mean features selected: 104
+    Std features selected: 21.5
+
+--- Protein 2/5: ('KRAS', 'ENSG00000133703.13') ---
+  Valid samples for this protein: 860
+  Fold 1 performance:
+    R² = 0.1872 (fraction of variance explained)
+    RMSE = 0.8241
+    MAE = 0.5910
+    Selected features: 189 / 5000 (~3.8%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 2 performance:
+    R² = 0.0668 (fraction of variance explained)
+    RMSE = 1.0770
+    MAE = 0.6276
+    Selected features: 194 / 5000 (~3.9%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 3 performance:
+    R² = 0.1224 (fraction of variance explained)
+    RMSE = 0.7921
+    MAE = 0.6002
+    Selected features: 188 / 5000 (~3.8%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 4 performance:
+    R² = 0.1560 (fraction of variance explained)
+    RMSE = 0.9117
+    MAE = 0.6475
+    Selected features: 165 / 5000 (~3.3%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 5 performance:
+    R² = 0.1852 (fraction of variance explained)
+    RMSE = 0.9190
+    MAE = 0.6287
+    Selected features: 323 / 5000 (~6.5%)
+    Best alpha: 0.4175
+    Best l1_ratio: 0.1
+
+  Cross-validation summary (5 folds):
+    Mean R²: 0.1435
+    Std R²: 0.0450
+    Min R²: 0.0668
+    Max R²: 0.1872
+    Mean features selected: 212
+    Std features selected: 56.5
+
+--- Protein 3/5: ('PIK3CA', 'ENSG00000121879.5') ---
+  Valid samples for this protein: 860
+  Fold 1 performance:
+    R² = 0.2705 (fraction of variance explained)
+    RMSE = 0.9432
+    MAE = 0.7001
+    Selected features: 196 / 5000 (~3.9%)
+    Best alpha: 0.2807
+    Best l1_ratio: 0.2
+  Fold 2 performance:
+    R² = 0.2971 (fraction of variance explained)
+    RMSE = 0.8469
+    MAE = 0.6304
+    Selected features: 212 / 5000 (~4.2%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 3 performance:
+    R² = 0.2345 (fraction of variance explained)
+    RMSE = 0.8734
+    MAE = 0.6112
+    Selected features: 371 / 5000 (~7.4%)
+    Best alpha: 0.4175
+    Best l1_ratio: 0.1
+  Fold 4 performance:
+    R² = 0.1686 (fraction of variance explained)
+    RMSE = 0.8521
+    MAE = 0.6719
+    Selected features: 86 / 5000 (~1.7%)
+    Best alpha: 0.0853
+    Best l1_ratio: 0.9
+  Fold 5 performance:
+    R² = 0.3391 (fraction of variance explained)
+    RMSE = 0.7856
+    MAE = 0.6226
+    Selected features: 343 / 5000 (~6.9%)
+    Best alpha: 0.4175
+    Best l1_ratio: 0.1
+
+  Cross-validation summary (5 folds):
+    Mean R²: 0.2620
+    Std R²: 0.0578
+    Min R²: 0.1686
+    Max R²: 0.3391
+    Mean features selected: 242
+    Std features selected: 104.1
+
+--- Protein 4/5: ('BRAF', 'ENSG00000157764.13') ---
+  Valid samples for this protein: 860
+  Fold 1 performance:
+    R² = 0.0771 (fraction of variance explained)
+    RMSE = 0.8312
+    MAE = 0.6450
+    Selected features: 232 / 5000 (~4.6%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 2 performance:
+    R² = 0.0411 (fraction of variance explained)
+    RMSE = 0.9302
+    MAE = 0.6904
+    Selected features: 198 / 5000 (~4.0%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 3 performance:
+    R² = 0.0531 (fraction of variance explained)
+    RMSE = 1.0333
+    MAE = 0.7575
+    Selected features: 53 / 5000 (~1.1%)
+    Best alpha: 0.1269
+    Best l1_ratio: 0.7000000000000001
+  Fold 4 performance:
+    R² = 0.0528 (fraction of variance explained)
+    RMSE = 0.9688
+    MAE = 0.7311
+    Selected features: 204 / 5000 (~4.1%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 5 performance:
+    R² = 0.0143 (fraction of variance explained)
+    RMSE = 1.0282
+    MAE = 0.7912
+    Selected features: 11 / 5000 (~0.2%)
+    Best alpha: 1.3738
+    Best l1_ratio: 0.1
+
+  Cross-validation summary (5 folds):
+    Mean R²: 0.0477
+    Std R²: 0.0204
+    Min R²: 0.0143
+    Max R²: 0.0771
+    Mean features selected: 140
+    Std features selected: 89.6
+
+--- Protein 5/5: ('EGFR', 'ENSG00000146648.18') ---
+  Valid samples for this protein: 860
+  Fold 1 performance:
+    R² = 0.2155 (fraction of variance explained)
+    RMSE = 0.9807
+    MAE = 0.6561
+    Selected features: 248 / 5000 (~5.0%)
+    Best alpha: 0.0386
+    Best l1_ratio: 0.9
+  Fold 2 performance:
+    R² = 0.6855 (fraction of variance explained)
+    RMSE = 0.5414
+    MAE = 0.3932
+    Selected features: 69 / 5000 (~1.4%)
+    Best alpha: 0.0574
+    Best l1_ratio: 0.9
+  Fold 3 performance:
+    R² = 0.2453 (fraction of variance explained)
+    RMSE = 0.8156
+    MAE = 0.5249
+    Selected features: 208 / 5000 (~4.2%)
+    Best alpha: 0.6210
+    Best l1_ratio: 0.1
+  Fold 4 performance:
+    R² = 0.2519 (fraction of variance explained)
+    RMSE = 0.9104
+    MAE = 0.6405
+    Selected features: 127 / 5000 (~2.5%)
+    Best alpha: 0.0853
+    Best l1_ratio: 0.8
+  Fold 5 performance:
+    R² = 0.3300 (fraction of variance explained)
+    RMSE = 0.7152
+    MAE = 0.5463
+    Selected features: 84 / 5000 (~1.7%)
+    Best alpha: 0.0853
+    Best l1_ratio: 0.9
+
+  Cross-validation summary (5 folds):
+    Mean R²: 0.3456
+    Std R²: 0.1741
+    Min R²: 0.2155
+    Max R²: 0.6855
+    Mean features selected: 147
+    Std features selected: 69.8
+
+Results were written to: results - linear regression model/step_3_results_chosen_proteins.txt

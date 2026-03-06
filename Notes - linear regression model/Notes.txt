@@ -7,6 +7,17 @@ Modeling: linear elastic net may be too simple if relationships are non‑linear
 Sample size vs features: 510 samples vs 60k features is extremely high‑dimensional; even with regularization, signal can be weak.
 
 
+step 1:
+
+Inspect RNA and protein tables to understand sample matching, identifiers, and missingness.
+
+
+step 2:
+
+Filter missing data, check normalization, detect batch effects, and handle outliers.
+
+step 3:
+
 solutions:
 - Variance filtering: keep top N RNA genes (most variable) to reduce noise.
 
@@ -36,3 +47,11 @@ no regression.
 Permutation (random labels): “What if I scramble the protein labels so RNA and protein are unrelated?”
 A good pipeline should then fail and give R² ≈ 0 or negative.
 If it still looks good, something is wrong (leakage/bug).
+
+
+choosing a protein:
+when choosing a protein, there could be possibally few targets for the same protein.
+Biologically, this means our data has multiple TP53 entities, not just one:
+ENSP... entries are protein isoforms of TP53 (different translated protein products from the same gene, 
+often due to alternative splicing or annotation versions).
+ENSG00000141510.17 is the TP53 gene ID (DNA/RNA-level gene identifier), not a specific protein isoform.
