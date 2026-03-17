@@ -227,6 +227,29 @@ def _save_pred_plot(out_dir: Path, target: str, y_true: np.ndarray, y_pred: np.n
     plt.close()
 
 
+def _save_shuffle_comparison_plot(
+    out_dir: Path,
+    target: str,
+    y_true: np.ndarray,
+    y_pred_real: np.ndarray,
+    y_pred_shuffled: np.ndarray,
+) -> None:
+    plt.figure(figsize=(6, 6))
+    plt.scatter(y_true, y_pred_real, alpha=0.7, color="blue", label="Real labels")
+    plt.scatter(y_true, y_pred_shuffled, alpha=0.7, color="red", label="Shuffled labels")
+    min_val = np.nanmin([y_true.min(), y_pred_real.min(), y_pred_shuffled.min()])
+    max_val = np.nanmax([y_true.max(), y_pred_real.max(), y_pred_shuffled.max()])
+    plt.plot([min_val, max_val], [min_val, max_val], linestyle="--", color="gray")
+    plt.xlabel("True protein abundance")
+    plt.ylabel("Predicted protein abundance")
+    plt.title(f"{target} real vs shuffled predictions")
+    plt.legend()
+    plt.tight_layout()
+    plot_path = out_dir / f"pred_vs_true_shuffle_compare_{target}.png"
+    plt.savefig(plot_path, dpi=150)
+    plt.close()
+
+
 def _write_progress(out_dir: Path, payload: dict) -> None:
     progress_path = out_dir / "progress.json"
     progress_path.write_text(json.dumps(payload, indent=2))
@@ -498,6 +521,13 @@ def main() -> int:
             shuffle_r2 = r2_score(y_test, shuffle_pred)
             shuffle_mae = mean_absolute_error(y_test, shuffle_pred)
             shuffle_pearson = _pearson_corr(y_test.values, shuffle_pred)
+            _save_shuffle_comparison_plot(
+                out_dir,
+                target,
+                y_test.values,
+                rf_pred,
+                shuffle_pred,
+            )
             logging.info("[SHUFFLE CONTROL] %s R2=%.4f", target, shuffle_r2)
             metrics.append(
                 {
