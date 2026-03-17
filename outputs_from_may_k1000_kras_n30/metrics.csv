@@ -1,0 +1,2 @@
+target,n_samples,baseline_r2,baseline_mae,baseline_pearson,rf_r2,rf_mae,rf_pearson,rf_best_cv_r2,rf_best_params,target_rna_in_top50
+KRAS,1071,-1.7802515222487427,1.2002357797468768,0.3730517372083333,0.39811442332513247,0.5434697003634147,0.6523878893446701,0.2587236328454511,"{""model__n_estimators"": 1200, ""model__min_samples_split"": 10, ""model__min_samples_leaf"": 8, ""model__max_features"": 0.8, ""model__max_depth"": 10, ""model__bootstrap"": true}",True

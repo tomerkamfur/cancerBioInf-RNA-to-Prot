@@ -1,0 +1,2 @@
+target,n_samples,baseline_r2,baseline_mae,baseline_pearson,rf_r2,rf_mae,rf_pearson,rf_best_cv_r2,rf_best_params,target_rna_in_top50
+TP53,763,-0.3929489703126978,0.8955126118565503,0.5237105506099505,0.3770787361321374,0.6045676287958187,0.6177023554661579,0.38344217368405625,"{""model__n_estimators"": 500, ""model__min_samples_split"": 10, ""model__min_samples_leaf"": 8, ""model__max_features"": 0.5, ""model__max_depth"": 5, ""model__bootstrap"": false}",True

@@ -1,0 +1,3 @@
+target,control_type,n_samples,baseline_r2,baseline_mae,baseline_pearson,rf_r2,rf_mae,rf_pearson,rf_best_cv_r2,rf_best_params,target_rna_in_top50
+KRAS,real,1071,-1.7802515222487427,1.2002357797468768,0.3730517372083333,0.399198548388058,0.542939734236138,0.6527954032086838,0.2606108797464994,"{""n_estimators"": 800, ""min_samples_split"": 5, ""min_samples_leaf"": 8, ""max_features"": 0.8, ""max_depth"": 40, ""bootstrap"": true}",True
+KRAS,shuffled,1071,-1.7802515222487427,1.2002357797468768,0.3730517372083333,-0.10281957206893022,0.7285427512603633,-0.19475505228012327,0.2606108797464994,"{""n_estimators"": 800, ""min_samples_split"": 5, ""min_samples_leaf"": 8, ""max_features"": 0.8, ""max_depth"": 40, ""bootstrap"": true}",True
