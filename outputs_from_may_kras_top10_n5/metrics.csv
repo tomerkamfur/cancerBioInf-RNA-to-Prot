@@ -1,0 +1,2 @@
+target,top_n,n_samples,rf_r2,rf_mae,rf_pearson,rf_best_cv_r2,rf_best_params
+KRAS,10,1071,0.33189493189594066,0.5958671059919893,0.5802748717220131,0.31693097075647897,"{""n_estimators"": 300, ""min_samples_split"": 20, ""min_samples_leaf"": 2, ""max_features"": 0.5, ""max_depth"": 10, ""bootstrap"": true}"
